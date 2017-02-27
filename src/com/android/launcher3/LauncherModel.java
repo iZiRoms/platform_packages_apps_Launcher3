@@ -2132,7 +2132,7 @@ public class LauncherModel extends BroadcastReceiver
                                 }
 
                                 boolean useLowResIcon = container >= 0 &&
-                                        c.getInt(rankIndex) >= FolderIcon.NUM_ITEMS_IN_PREVIEW;
+                                        c.getInt(rankIndex) >= FolderIcon.getMaxPreviewItems();
 
                                 if (itemReplaced) {
                                     if (user.equals(UserHandleCompat.myUserHandle())) {
@@ -2486,7 +2486,7 @@ public class LauncherModel extends BroadcastReceiver
                             info.updateIcon(mIconCache, false);
                         }
                         pos ++;
-                        if (pos >= FolderIcon.NUM_ITEMS_IN_PREVIEW) {
+                        if (pos >= FolderIcon.getMaxPreviewItems()) {
                             break;
                         }
                     }
