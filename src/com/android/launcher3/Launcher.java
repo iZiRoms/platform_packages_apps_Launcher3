@@ -90,6 +90,7 @@ import com.android.launcher3.DropTarget.DragObject;
 import com.android.launcher3.LauncherSettings.Favorites;
 import com.android.launcher3.accessibility.LauncherAccessibilityDelegate;
 import com.android.launcher3.allapps.AllAppsContainerView;
+import com.android.launcher3.allapps.PredictiveAppsProvider;
 import com.android.launcher3.allapps.AllAppsTransitionController;
 import com.android.launcher3.allapps.DefaultAppSearchController;
 import com.android.launcher3.compat.AppWidgetManagerCompat;
@@ -357,6 +358,8 @@ public class Launcher extends Activity
     public ViewGroupFocusHelper mFocusHandler;
     private boolean mRotationEnabled = false;
 
+    private PredictiveAppsProvider mPredictiveAppsProvider;
+
     @Thunk void setOrientation() {
         if (mRotationEnabled) {
             unlockScreenOrientation(true);
@@ -387,6 +390,8 @@ public class Launcher extends Activity
         if (LauncherAppState.PROFILE_STARTUP) {
             Trace.beginSection("Launcher-onCreate");
         }
+
+        mPredictiveAppsProvider = new PredictiveAppsProvider(this);
 
         if (mLauncherCallbacks != null) {
             mLauncherCallbacks.preOnCreate();
@@ -1072,6 +1077,8 @@ public class Launcher extends Activity
         if (mLauncherCallbacks != null) {
             mLauncherCallbacks.onResume();
         }
+
+        tryAndUpdatePredictedApps();
     }
 
     @Override
@@ -2850,6 +2857,9 @@ public class Launcher extends Activity
             } else if (user == null || user.equals(UserHandleCompat.myUserHandle())) {
                 // Could be launching some bookkeeping activity
                 startActivity(intent, optsBundle);
+                if (isAllAppsVisible()) {
+                    mPredictiveAppsProvider.updateComponentCount(intent.getComponent());
+                }
             } else {
                 LauncherAppsCompat.getInstance(this).startActivityForProfile(
                         intent.getComponent(), user, intent.getSourceBounds(), optsBundle);
@@ -3432,12 +3442,16 @@ public class Launcher extends Activity
      * resumed.
      */
     public void tryAndUpdatePredictedApps() {
+        List<ComponentKey> apps;
         if (mLauncherCallbacks != null) {
-            List<ComponentKey> apps = mLauncherCallbacks.getPredictedApps();
-            if (apps != null) {
-                mAppsView.setPredictedApps(apps);
-                getUserEventDispatcher().setPredictedApps(apps);
-            }
+            apps = mLauncherCallbacks.getPredictedApps();
+        } else {
+            apps = mPredictiveAppsProvider.getPredictions();
+            mPredictiveAppsProvider.updateTopPredictedApps();
+        }
+
+        if (apps != null) {
+            mAppsView.setPredictedApps(apps);
         }
     }
 
