@@ -380,7 +380,7 @@ public class Launcher extends Activity
         }
     }
 
-    private RotationPrefChangeHandler mRotationPrefChangeHandler;
+    private LauncherPrefChangeHandler mLauncherPrefChangeHandler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -481,9 +481,12 @@ public class Launcher extends Activity
         // if the user has specifically allowed rotation.
         if (!mRotationEnabled) {
             mRotationEnabled = Utilities.isAllowRotationPrefEnabled(getApplicationContext());
-            mRotationPrefChangeHandler = new RotationPrefChangeHandler();
-            mSharedPrefs.registerOnSharedPreferenceChangeListener(mRotationPrefChangeHandler);
         }
+
+        if (mLauncherPrefChangeHandler != null) {
+            mLauncherPrefChangeHandler = new LauncherPrefChangeHandler();
+        }
+        mSharedPrefs.registerOnSharedPreferenceChangeListener(mLauncherPrefChangeHandler);
 
         // On large interfaces, or on devices that a user has specifically enabled screen rotation,
         // we want the screen to auto-rotate based on the current orientation
@@ -2006,8 +2009,8 @@ public class Launcher extends Activity
             LauncherAppState.getInstance().setLauncher(null);
         }
 
-        if (mRotationPrefChangeHandler != null) {
-            mSharedPrefs.unregisterOnSharedPreferenceChangeListener(mRotationPrefChangeHandler);
+        if (mLauncherPrefChangeHandler != null) {
+            mSharedPrefs.unregisterOnSharedPreferenceChangeListener(mLauncherPrefChangeHandler);
         }
 
         try {
@@ -4614,7 +4617,7 @@ public class Launcher extends Activity
         return ((Launcher) ((ContextWrapper) context).getBaseContext());
     }
 
-    private class RotationPrefChangeHandler implements OnSharedPreferenceChangeListener, Runnable {
+    private class LauncherPrefChangeHandler implements OnSharedPreferenceChangeListener, Runnable {
 
         @Override
         public void onSharedPreferenceChanged(
@@ -4629,7 +4632,9 @@ public class Launcher extends Activity
 
         @Override
         public void run() {
-            setOrientation();
+            if (mRotationEnabled) {
+                setOrientation();
+            }
         }
     }
 }
